@@ -15,3 +15,5 @@ dist
 !cordova/*.js
 .appengine_datastore
 .appengine_storage
+.idea
+testing_script.py
