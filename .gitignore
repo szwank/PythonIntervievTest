@@ -1,0 +1,17 @@
+.DS_Store
+nbproject/
+*.pyc
+*.log
+*.js
+package-lock.json
+.settings
+.coverage
+.project
+.pydevproject
+node_modules
+plugins
+platforms
+dist
+!cordova/*.js
+.appengine_datastore
+.appengine_storage

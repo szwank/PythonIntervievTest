@@ -1,0 +1,15 @@
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /api/.*
+  script: backend.api.application
+  secure: always
+
+- url: /_ah/warmup
+  script: backend.api.warmup
+  login: admin
+
+inbound_services:
+- warmup
