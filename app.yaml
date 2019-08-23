@@ -2,6 +2,7 @@ runtime: python27
 api_version: 1
 threadsafe: true
 
+
 handlers:
 - url: /api/.*
   script: backend.api.application
@@ -14,6 +15,11 @@ handlers:
 - url: /index
   script: frontend.app
 
+- url: /delete
+  script: frontend.app
+
+- url: /api/movie/titles
+  script: api.movie.Titles
 
 inbound_services:
 - warmup
