@@ -9,7 +9,8 @@ from protorpc.wsgi import service
 
 from backend.cache import lru_cache
 from backend.user import User, EmailTaken
-
+from backend.movie import Movie
+import time
 
 BASE_PATH = "/api/"
 SERVICES = []
@@ -245,5 +246,10 @@ def warmup(environ, start_response):
     except EmailTaken:
         # Test user already in the database. No action needed
         pass
+
+    Movie.initialize_movie_database(5)
     start_response('200 OK', [])
+
     return ['']
+
+
