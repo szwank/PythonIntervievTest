@@ -13,10 +13,11 @@ class FetchMovie:
     def __init__(self):
         pass
 
-    def fetch_movie(self, *args):
+    @classmethod
+    def fetch_movie(cls, *args):
         url_attributes = "&".join(args)
         try:
-            fetched_url = self.url + '?' + url_attributes + '&' + self.access_key
+            fetched_url = cls.url + '?' + url_attributes + '&' + cls.access_key
             result = urlfetch.fetch(fetched_url)
 
             if result.status_code == 200:
