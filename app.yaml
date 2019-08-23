@@ -11,5 +11,9 @@ handlers:
   script: backend.api.warmup
   login: admin
 
+- url: /index
+  script: frontend.app
+
+
 inbound_services:
 - warmup
