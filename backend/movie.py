@@ -1,22 +1,29 @@
 from google.appengine.ext import ndb
-from backend.keyvalue import KeyValue
+from backend.keyvalue import KeyValue, Key
+from backend import fetch_data
 import logging
 
-class Movie(ndb.Model):
-    title = ndb.StringProperty(indexed=True)
-    data = ndb.KeyProperty(KeyValue)
+Empty = []
+
+class Movie(KeyValue):
 
     @classmethod
-    def create(cls, title, data):
-        data = KeyValue.create(title, data)
-        entity = cls(title=title,
-                     data=data.key)
-        entity.put()
-        logging.error('done')
-        # return entity
+    def initialize_movie_database(cls, how_much_to_add):
+        # if cls.query(Movie).fetch(1) is not None:
+        if cls.query().fetch(1) == Empty:
+            # logging.error(cls.query().fetch(1))
+            fetch_data.FetchMovie.add_many_movies_to_database(how_much_to_add=how_much_to_add)
+
+        else:
+            # Movies are in database no need for adding them
+            logging.info("Movies are still in data base. None was added")
+            pass
 
     @classmethod
-    def get(cls):
-        pass
+    def delete_all_movies(cls):
+        list_of_keys = ndb.put_multi(cls.query())
+        list_of_entities = ndb.get_multi(list_of_keys)
+        ndb.delete_multi(list_of_keys)
+
 
 
