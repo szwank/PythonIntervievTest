@@ -6,11 +6,14 @@ threadsafe: true
 handlers:
 - url: /api/.*
   script: backend.api.application
-  secure: always
+#  secure: always
 
 - url: /_ah/warmup
   script: backend.api.warmup
   login: admin
+
+- url: /api/movies
+  script: backend.api.test.check
 
 - url: /index
   script: frontend.app
@@ -19,6 +22,9 @@ handlers:
   script: frontend.app
 
 - url: /api/movie/titles
+  script: api.movie.Titles
+
+- url: /api/movie/titles/page/<int:page_number>
   script: api.movie.Titles
 
 inbound_services:
