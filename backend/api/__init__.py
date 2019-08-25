@@ -10,8 +10,6 @@ from protorpc.wsgi import service
 from backend.cache import lru_cache
 from backend.user import User, EmailTaken
 from backend.movie import Movie
-import time
-
 BASE_PATH = "/api/"
 SERVICES = []
 
@@ -202,6 +200,7 @@ def application(environ, start_response):
     if environ.get('REQUEST_METHOD') in ["OPTIONS"]:
         start_response('200 OK', [('Access-Control-Allow-Headers', 'authorization, origin, content-type, accept'), ('Access-Control-Max-Age', '600'), ('Access-Control-Allow-Origin', '*')])
         response = ['']
+
     elif environ.get('REQUEST_METHOD') in ["GET", "HEAD", "POST"]:
         swagger = swagger2(environ.get('HTTP_HOST'), environ.get('PATH_INFO'))
 
@@ -231,7 +230,6 @@ def application(environ, start_response):
     else:
         start_response('405 Method Not Allowed', [('Allow', 'OPTIONS, GET, HEAD, POST')])
         response = ['']
-
     if environ.get('REQUEST_METHOD') in ["HEAD"]:
         return ['']
     else:
@@ -251,5 +249,3 @@ def warmup(environ, start_response):
     start_response('200 OK', [])
 
     return ['']
-
-
