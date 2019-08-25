@@ -83,4 +83,8 @@ def delete(title, namespace=None):
     if entity:
         entity.delete()
 
+def get_movies(how_much):
+    result = Movie.query().fetch(how_much)
+    return map(lambda movie: json.loads(movie.value), result)
+
 
