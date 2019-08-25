@@ -1,7 +1,7 @@
 from backend import api
 from protorpc import remote, messages, message_types
 from backend import movie
-import json
+from backend import fetch_data
 
 class JsonField(messages.StringField):
     type = dict
@@ -32,6 +32,9 @@ class Movie(messages.Message):
 class Movies(messages.Message):
     movies = messages.MessageField(Movie, 1, repeated=True)
 
+class AddMovieRequest(messages.Message):
+    title = messages.StringField(1, required=True)
+
 
 # class Title(messages.Message):
 #     title = message
@@ -57,6 +60,13 @@ class MovieService(remote.Service):
             return Movie(movie=result)
         else:
             return Movie(movie={'No Results': 'There is no matching title'})
+
+    @remote.method(AddMovieRequest, message_types.VoidMessage)
+    def add_movie(self, request):
+        fetch_result = fetch_data.FetchMovie.fetch_movie_by_title(request.title)
+        movie.set(fetch_result)
+        return message_types.VoidMessage()
+
 
 
 
