@@ -14,13 +14,13 @@ class TitleTaken(error.Error):
 
 class Movie(ndb.Model):
     title = ndb.StringProperty(indexed=True)
-    description = ndb.StringProperty()
+    description = ndb.JsonProperty()
 
     @classmethod
     def create(cls, title, description, put_into_database=True):
         if cls.get_by_title(title) in [Empty, None]:
             cls.__remove_title_from_description(description)        # formating data
-            entity = Movie(title=title, description=json.dumps(description))
+            entity = Movie(title=title, description=description)
             if put_into_database is True:
                 entity.put()
         else:
@@ -85,37 +85,27 @@ class Movie(ndb.Model):
         ndb.delete_multi(list_of_entities)
 
     @classmethod
-    def get_titles(cls, titles_on_single_page=10):
-        list_of_titles = map(lambda x: str(x.title), cls.query().fetch(titles_on_single_page))
-        list_of_titles.sort()
-        titles = ", ".join(list_of_titles)
-        return titles
-
-    @classmethod
     def get_movies(cls, how_much):
         result = cls.query().fetch(how_much)
-        return map(lambda movie: json.loads(movie.description), result) if result else None
+        return result if result else None
 
 
     @classmethod
-    @lru_cache()
-    @mem_cache()
     def get_by_title(cls, title):
         entity = cls.query(cls.title == title).get()
         return entity if entity else None
 
+    @classmethod
+    def get_by_ID(cls, ID):
+        entity = ndb.Key(cls, ID).get()
+        return entity if entity else None
+
+    @classmethod
+    def delete_by_ID(cls, ID):
+        entity = cls.get_by_ID(ID)
+        entity.key.remove()     # return always None
 
 
-
-
-
-
-
-def delete(title, namespace=None):
-    key = keyvalue.Key(title, namespace=namespace)
-    entity = Movie.get(key)
-    if entity:
-        entity.delete()
 
 
 
