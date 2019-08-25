@@ -3,6 +3,9 @@ from protorpc import remote, messages, message_types
 from backend import movie
 import json
 
+class JsonField(messages.StringField):
+    type = dict
+
 class GetTitle(messages.Message):
     get = messages.StringField(1, required=True)
 
@@ -24,7 +27,7 @@ class GetSingleMovieRequest(messages.Message):
     title = messages.StringField(1, required=True)
 
 class Movie(messages.Message):
-    movie = messages.StringField(1, required=True)
+    movie = JsonField(1, required=True)
 
 class Movies(messages.Message):
     movies = messages.MessageField(Movie, 1, repeated=True)
@@ -38,18 +41,21 @@ class MovieService(remote.Service):
 
     @remote.method(GetMoviesRequest, Movies)
     def get_movies(self, request):
-        query = movie.Movie.query()
+        movies = movie.get_movies(10)
 
         if request.order == GetMoviesRequest.Order.TITLE:
-            query = query.order(movie.Movie.title)
+            movies.sort(key=lambda item: item.get("Title"))
 
-        movies = map(lambda result: Movie(movie=str(json.loads(result.value))), query.fetch(request.how_many))
-
+        # movies = map(lambda result: Movie(movie=str(json.loads(result.value))), query.fetch(request.how_many))
+        movies = map(lambda element: Movie(movie=element), movies)
         return Movies(movies=movies)
 
     @remote.method(GetSingleMovieRequest, Movie)
     def get_movie(self, request):
-        query = movie.Movie.query()
+        result = movie.get(request.title)
+
+        if result:
+            return Movie(movie=result)
 
 
 
