@@ -1,10 +1,9 @@
 from google.appengine.ext import ndb
 import random
-from backend import keyvalue, error, fetch_data
+from backend import error, fetch_data
 import logging
 import json
 
-from backend.cache import lru_cache, mem_cache
 
 Empty = []
 
@@ -103,7 +102,7 @@ class Movie(ndb.Model):
     @classmethod
     def delete_by_ID(cls, ID):
         entity = cls.get_by_ID(ID)
-        entity.key.remove()     # return always None
+        return entity.key.delete() if entity else None    # return always None
 
 
 
