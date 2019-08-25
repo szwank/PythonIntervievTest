@@ -18,12 +18,12 @@ class FetchMovie:
 
     @classmethod
     def create_fetched_url(cls, url_attributes):
-        return '%s?%s&%s' % (cls.url, url_attributes, cls.access_key)
+        return "%s?%s&%s" % (cls.url, url_attributes, cls.access_key)
 
     @classmethod
     def fetch_url(cls, fetched_url):
         try:
-            result = urlfetch.fetch(fetched_url)
+            result = urlfetch.fetch(fetched_url.encode('ascii', 'ignore'))
 
             if result.status_code == 200:
                 return result.content
@@ -40,8 +40,8 @@ class FetchMovie:
 
     @classmethod
     def fetch_movie_by_title(cls, movie_title):
-        cls.fetch_movie('t= %s' % movie_title)
-        
+        return cls.fetch_movie("t=%s" % movie_title)
+
 
 
 
