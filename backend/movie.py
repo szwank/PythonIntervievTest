@@ -16,9 +16,10 @@ class Movie(keyvalue.KeyValue):
     def create(cls, key, title, value, expires=None):
         entity = super(cls, Movie).create(key, value, expires)
         entity.update(title=title)
+        return entity
 
     @classmethod
-    def add_many_movies_to_database(cls, how_much_to_add):
+    def add_movies_to_database(cls, how_much_to_add):
         movies_id_to_fetch = random.sample(range(70000), how_much_to_add)
         for i in range(how_much_to_add):
             argument = 'i=tt' + "%07d" % movies_id_to_fetch[i]
@@ -28,7 +29,7 @@ class Movie(keyvalue.KeyValue):
     @classmethod
     def initialize_movie_database(cls, how_much_to_add):
         if cls.query().fetch(1) == Empty:
-            cls.add_many_movies_to_database(how_much_to_add=how_much_to_add)
+            cls.add_movies_to_database(how_much_to_add=how_much_to_add)
         else:
             # Movies are in database no need for adding them
             logging.info("Movies are still in data base. None was added")
@@ -41,12 +42,13 @@ class Movie(keyvalue.KeyValue):
         ndb.delete_multi(list_of_entities)
 
     @classmethod
-    @lru_cache()
-    @mem_cache()
+    # @lru_cache()
+    # @mem_cache()
     def get_titles(cls, titles_on_single_page=10):
         list_of_titles = map(lambda x: str(x.title), cls.query().fetch(titles_on_single_page))
         list_of_titles.sort()
-        return list_of_titles
+        titles = ", ".join(list_of_titles)
+        return titles
 
 
     @classmethod
