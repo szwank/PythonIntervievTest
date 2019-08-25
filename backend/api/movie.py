@@ -46,16 +46,17 @@ class MovieService(remote.Service):
         if request.order == GetMoviesRequest.Order.TITLE:
             movies.sort(key=lambda item: item.get("Title"))
 
-        # movies = map(lambda result: Movie(movie=str(json.loads(result.value))), query.fetch(request.how_many))
         movies = map(lambda element: Movie(movie=element), movies)
         return Movies(movies=movies)
 
     @remote.method(GetSingleMovieRequest, Movie)
-    def get_movie(self, request):
+    def get_movie_by_title(self, request):
         result = movie.get(request.title)
 
         if result:
             return Movie(movie=result)
+        else:
+            return Movie(movie={'No Results': 'There is no matching title'})
 
 
 
