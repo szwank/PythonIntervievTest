@@ -35,18 +35,19 @@ class MessageCursors(messages.Message):
 
 class GetMoviesRequest(messages.Message):
     how_many_on_page = messages.IntegerField(1, default=10)
-    message_cursors = messages.MessageField(MessageCursors, 2)
+    next_cursor = messages.StringField(2, default="")
+    current_cursor = messages.StringField(3, default="")
 
     class Order(messages.Enum):
         TITLE = 1
 
-    order = messages.EnumField(Order, 3, default=Order.TITLE)
+    order = messages.EnumField(Order, 4, default=Order.TITLE)
 
     class Dirction(messages.Enum):
         NEXT = 1
         PREVIOUS = 2
 
-    direction = messages.EnumField(Dirction, 4, default=Dirction.NEXT)
+    direction = messages.EnumField(Dirction, 5, default=Dirction.NEXT)
 
 
 class GetSingleMovieRequest(messages.Message):
@@ -73,8 +74,9 @@ class RemoveMovieByTitleRequest(messages.Message):
 
 class GetMoviesRespond(messages.Message):
     movies = messages.MessageField(Movie, 1, repeated=True)
-    message_cursors = messages.MessageField(MessageCursors, 2, required=True)
-    more_to_get = messages.BooleanField(3, required=True)
+    next_cursor = messages.StringField(2, default="")
+    current_cursor = messages.StringField(3, default="")
+    more_to_get = messages.BooleanField(4, required=True)
 
 
 @api.endpoint(path="movie", title="Movie API")
@@ -89,21 +91,22 @@ class MovieService(remote.Service):
 
 
         if request.direction == request.direction.NEXT:
-            if request.message_cursors:     # usual_case
-                cursor = Cursor(urlsafe=request.cursor.next_cursor)
-                current_cursor = request.cursor.next_cursor
+            if request.next_cursor:     # usual_case
+                cursor = Cursor(urlsafe=request.next_cursor)
+                current_cursor = request.next_cursor
             else:   # No Cursors. First batch
                 cursor = Cursor()
                 current_cursor = cursor.urlsafe()
 
             movies, next_cursor, more = query.fetch_page(request.how_many_on_page, start_cursor=cursor)
-            next_cursor = next_cursor.urlsafe()
+            if next_cursor:
+                next_cursor = next_cursor.urlsafe()
 
         elif request.direction == request.direction.PREVIOUS:
-            if request.cursor.current_cursor:       # We are at first batch cursor- there is no data to get in this direction.
+            if not request.current_cursor:       # We are at first batch cursor- there is no data to get in this direction.
                 raise NoPageLeftInThatDirection("Cannot get more in that direction.")
 
-            cursor = Cursor(urlsafe=request.cursor.current_cursor)
+            cursor = Cursor(urlsafe=request.current_cursor)
             cursor.reversed()
 
             movies, next_cursor, more = query.fetch_page(request.how_many_on_page, start_cursor=cursor)
@@ -119,8 +122,7 @@ class MovieService(remote.Service):
                                           description=item.description)
 
         movies = map(map_to_movie, movies)
-        message_cursors = MessageCursors(next_cursor=next_cursor, current_cursor=current_cursor)
-        return GetMoviesRespond(movies=movies, message_cursors=message_cursors, more_to_get=more)
+        return GetMoviesRespond(movies=movies, next_cursor=next_cursor, current_cursor=current_cursor, more_to_get=more)
 
     @remote.method(GetSingleMovieRequest, Movie)
     def get_movie_by_title(self, request):
@@ -129,7 +131,7 @@ class MovieService(remote.Service):
         if result:
             return Movie(title=result.title, ID=result.key.id(), description=result.description)
         else:
-            return Movie(movie={'No Results': 'There is no matching title'})
+            return Movie(title="", ID=123, description={'No Results': 'There is no matching title'})
 
     @remote.method(AddMovieRequest, message_types.VoidMessage)
     def add_movie(self, request):
