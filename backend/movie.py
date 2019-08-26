@@ -57,7 +57,8 @@ class Movie(ndb.Model):
     @classmethod
     def create_from_list_of_descriptions(cls, descriptions):
         movies = map(lambda description: cls.create_from_decription(description, put_into_database=False), descriptions)
-        return ndb.put_multi(movies) if movies else None
+        ndb.put_multi(movies)
+        return movies if movies else None
 
     @classmethod
     def __remove_title_from_description(cls, description):
