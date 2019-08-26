@@ -3,6 +3,11 @@ import unittest
 import json
 import StringIO
 import urlparse
+import time
+
+from google.appengine.api import apiproxy_stub
+from google.appengine.api import apiproxy_stub_map
+
 
 try:
     from google.appengine.ext import testbed
@@ -51,7 +56,10 @@ class TestCase(unittest.TestCase):
         # api mock
         self.api_mock = ApiMock()
 
-    def tearDown(self):
+        self.fetch_mock = FetchServiceMock()        # for urlfetch
+        apiproxy_stub_map.apiproxy.RegisterStub('urlfetch', self.fetch_mock)
+
+def tearDown(self):
         if testbed:
             self.testbed.deactivate()
 
@@ -104,3 +112,32 @@ class ApiMock(object):
             method="POST",
             data=data
         )
+
+class FetchServiceMock(apiproxy_stub.APIProxyStub):
+    def __init__(self, service_name='urlfetch'):
+        super(FetchServiceMock, self).__init__(service_name)
+
+
+
+    def set_return_values(self, change_title=False, **kwargs):
+        if change_title:
+            content = kwargs['content']
+            title = content.get('Title', 'Title')
+            content['Title'] = title + str(time.time())
+            kwargs['content'] = content
+        self.return_values = kwargs
+
+    def _Dynamic_Fetch(self, request, response):
+        rv = self.return_values
+        response.set_content(rv.get('content', ''))
+        response.set_statuscode(rv.get('status_code', 500))
+        for header_key, header_value in rv.get('headers', {}):
+            new_header = response.add_header() # prototype for a header
+            new_header.set_key(header_key)
+            new_header.set_value(header_value)
+        response.set_finalurl(rv.get('final_url', request.url))
+        response.set_contentwastruncated(rv.get('content_was_truncated', False))
+
+        # allow to query the object after it is used
+        self.request = request
+        self.response = response
