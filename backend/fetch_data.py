@@ -1,7 +1,7 @@
 from google.appengine.api import urlfetch
 from backend import error
 import logging
-
+import random
 
 
 class ErrorWhileFetching(error.Error):
@@ -42,8 +42,16 @@ class FetchMovie:
     def fetch_movie_by_title(cls, movie_title):
         return cls.fetch_movie("t=%s" % movie_title)
 
+    @classmethod
+    def fetch_random_movies(cls, how_much_to_fetch):
+        descriptions = []
 
+        movies_id_to_fetch = random.sample(range(70000), how_much_to_fetch)
+        for i in range(how_much_to_fetch):
+            argument = 'i=tt' + "%07d" % movies_id_to_fetch[i]
+            descriptions.append(cls.fetch_movie(argument))
 
+        return descriptions
 
 
 

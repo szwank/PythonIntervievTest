@@ -1,5 +1,5 @@
 from google.appengine.ext import ndb
-import random
+
 from backend import error, fetch_data
 import logging
 import json
@@ -17,6 +17,8 @@ class Movie(ndb.Model):
 
     @classmethod
     def create(cls, title, description, put_into_database=True):
+        description = cls.__convert_to_json(description)
+
         if cls.get_by_title(title) in [Empty, None]:
             cls.__remove_title_from_description(description)        # formating data
             entity = Movie(title=title, description=description)
@@ -28,14 +30,20 @@ class Movie(ndb.Model):
         return entity
 
     @classmethod
+    def __convert_to_json(cls, description):
+        if type(description) is not dict:
+            if type(description) in [unicode, str]:
+                try:
+                    description = json.loads(description)
+                except:
+                    raise ValueError('Cannot convert %s' % str(type(description)))
+            else:
+                raise ValueError('Unsupported format of description.')
+        return description
+
+    @classmethod
     def create_from_decription(cls, description, put_into_database=True):
-        if type(description) in [str, unicode]:
-            description = json.loads(description)
-        elif type(description) is dict:
-            # Correct data, nothing to do
-            pass
-        else:
-            raise ValueError("Incorrect data. Description needs to be str, unicode or dictionary.")
+        description = cls.__convert_to_json(description)
 
         try:
             title = description['Title']
@@ -60,14 +68,8 @@ class Movie(ndb.Model):
 
     @classmethod
     def add_movies_to_database(cls, how_much_to_add):
-        descriptions = []
-
-        movies_id_to_fetch = random.sample(range(70000), how_much_to_add)
-        for i in range(how_much_to_add):
-            argument = 'i=tt' + "%07d" % movies_id_to_fetch[i]
-            descriptions.append(fetch_data.FetchMovie.fetch_movie(argument))
+        descriptions = fetch_data.FetchMovie.fetch_random_movies(how_much_to_add)
         return cls.create_from_list_of_descriptions(descriptions)
-
 
     @classmethod
     def initialize_movie_database(cls, how_much_to_add):
