@@ -3,10 +3,6 @@ import unittest
 import json
 import StringIO
 import urlparse
-import time
-
-from google.appengine.api import apiproxy_stub
-from google.appengine.api import apiproxy_stub_map
 
 
 try:
@@ -42,6 +38,7 @@ class TestCase(unittest.TestCase):
             self.policy = datastore_stub_util.PseudoRandomHRConsistencyPolicy(probability=0)
             self.testbed.init_datastore_v3_stub(consistency_policy=self.policy)
             self.testbed.init_blobstore_stub()
+            self.testbed.init_urlfetch_stub()
             self.testbed.init_mail_stub()
 
             # get stubs
@@ -56,8 +53,7 @@ class TestCase(unittest.TestCase):
         # api mock
         self.api_mock = ApiMock()
 
-        self.fetch_movie_mock = FetchServiceMock()        # for urlfetch
-        apiproxy_stub_map.apiproxy.RegisterStub('urlfetch', self.fetch_movie_mock)
+
 
 def tearDown(self):
         if testbed:
@@ -112,34 +108,3 @@ class ApiMock(object):
             method="POST",
             data=data
         )
-
-class FetchServiceMock(apiproxy_stub.APIProxyStub):
-    def __init__(self, service_name='urlfetch'):
-        super(FetchServiceMock, self).__init__(service_name)
-        self.title = 'Title'
-        self.description = {'Year': '1995'}
-
-    def set_description(self, description):
-        self.description = description
-        self.title = description.get("Title", "Title")
-
-    def get_respond(self):
-        description_copy = dict(self.description)
-        description_copy["Title"] = self.title + str(time.time())
-
-        return {'content': description_copy, 'status_code': 200}
-
-    def _Dynamic_Fetch(self, request, response):
-        rv = self.get_respond()
-        response.set_content(rv.get('content', ''))
-        response.set_statuscode(rv.get('status_code', 500))
-        for header_key, header_value in rv.get('headers', {}):
-            new_header = response.add_header() # prototype for a header
-            new_header.set_key(header_key)
-            new_header.set_value(header_value)
-        response.set_finalurl(rv.get('final_url', request.url))
-        response.set_contentwastruncated(rv.get('content_was_truncated', False))
-
-        # allow to query the object after it is used
-        self.request = request
-        self.response = response
