@@ -1,7 +1,5 @@
 from backend import test, movie, fetch_data
-from google.appengine.ext import ndb
-import time
-import json
+
 
 
 class TestMovie(test.TestCase):
@@ -57,36 +55,33 @@ class TestMovie(test.TestCase):
         self.assertRaises(ValueError, lambda: movie.Movie.create_from_decription(description=self.description_without_title))
 
     def test_create_from_list_of_descriptions(self):
-        self.fetch_movie_mock.set_description(description=self.description_with_title)
-        descriptions = fetch_data.FetchMovie.fetch_random_movies(10)
+        descriptions = fetch_data.FetchMovie.fetch_random_movies(5)
 
         objects = movie.Movie.create_from_list_of_descriptions(descriptions)
-        self.assertEqual(len(objects), 10)
+        self.assertEqual(len(objects), 5)
         self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects))
 
     def test_add_movies_to_database(self):
-        self.fetch_movie_mock.set_description(description=self.description_with_title)
-        objects = movie.Movie.add_movies_to_database(10)
+        objects = movie.Movie.add_movies_to_database(5)
 
-        self.assertEqual(len(objects), 10)
+        self.assertEqual(len(objects), 5)
         self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects))
 
     def test_delete_by_ID(self):
-        obj = movie.Movie.create_from_decription(self.description_with_title)
+        obj = movie.Movie.create_from_decription(dict(self.description_with_title))
 
         self.assertIsNone(movie.Movie.delete_by_ID(obj.key.id()))
         self.assertIsNone(movie.Movie.get_by_ID(obj.key.id()))
 
 
     def test_delete_all_movies(self):
-        self.fetch_movie_mock.set_description(description=self.description_with_title)
-        objects = movie.Movie.add_movies_to_database(10)
+        objects = movie.Movie.add_movies_to_database(5)
 
         map(lambda obj: movie.Movie.delete_by_ID(obj.key.id()), objects)
-        self.assertEquals(map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects), [None]*10)
+        self.assertEquals(map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects), [None]*5)
 
     def test_get_by_ID(self):
-        obj = movie.Movie.create_from_decription(self.description_with_title)
+        obj = movie.Movie.create_from_decription(dict(self.description_with_title))
 
         taken_obj = movie.Movie.get_by_ID(obj.key.id())
 
@@ -97,6 +92,39 @@ class TestMovie(test.TestCase):
         movie.Movie.delete_by_ID(obj.key.id())
 
         self.assertIsNone(movie.Movie.get_by_ID(obj.key.id()))
+
+class TestMovieService(test.TestCase):
+
+    def test_add_movie(self):
+        resp = self.api_mock.post("/api/movie.add_movie", dict(title='Shrek'))
+        self.assertEqual(resp.get("error"), None)
+        self.assertEqual(resp, {})
+
+    def test_get_movies(self):
+        resp = self.api_mock.post("/api/movie.get_movies")
+        self.assertEqual(resp.get("error"), None)
+        self.assertFalse(resp.get("more_to_get"))
+        self.assertTrue(type(resp.get('message_cursors').get('current_cursor')) == (unicode or str))
+
+    def test_get_movie_by_title(self):
+        resp = self.api_mock.post("/api/movie.get_movie_by_title", dict(title='Shrek'))
+        self.assertEqual(resp.get("error"), None)
+        self.assertEquals(resp.get("title"), "")
+        self.assertEquals(resp.get("ID"), 0)
+        self.assertEquals(resp.get("description"), {u'No Results': u'There is no matching title'})
+
+    def test_delete_movie_by_ID(self):
+        resp = self.api_mock.post("/api/movie.delete_movie_by_ID", dict(ID='123'))
+        self.assertTrue(resp.get("error"))
+
+        self.api_mock.post("/api/user.create", dict(email="test@gmail.com", password="test"))
+        resp = self.api_mock.post("/api/movie.delete_movie_by_ID", dict(ID='123'))
+        self.assertEqual(resp.get("error"), None)
+        self.assertEqual(resp, {})
+
+
+
+
 
 
 
