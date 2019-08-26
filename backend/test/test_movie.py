@@ -62,50 +62,28 @@ class TestMovie(test.TestCase):
 
         objects = movie.Movie.create_from_list_of_descriptions(descriptions)
         self.assertEqual(len(objects), 10)
-        self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.id()).key, objects))
+        self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects))
 
     def test_add_movies_to_database(self):
         self.fetch_movie_mock.set_description(description=self.description_with_title)
         objects = movie.Movie.add_movies_to_database(10)
 
         self.assertEqual(len(objects), 10)
-        self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.id()).key, objects))
-
-    def test_delete_all_movies(self):
-        self.fetch_movie_mock.set_description(description=self.description_with_title)
-        movie.Movie.add_movies_to_database(10)
-
-        movie.Movie.delete_all_movies()
-        self.assertFalse(movie.Movie.query().fetch())
-
-    def test_initialize_movie_database(self):
-        self.fetch_movie_mock.set_description(description=self.description_with_title)
-        movie.Movie.delete_all_movies()
-
-        movie.Movie.initialize_movie_database(how_much_to_add=10)
-        self.assertEqual(len(movie.Movie.query().fetch()), 10)
-
-        movie.Movie.initialize_movie_database(how_much_to_add=10)
-        self.assertEqual(len(movie.Movie.query().fetch()), 10)        # check if number of movies in database has not changed
+        self.assertListEqual(objects, map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects))
 
     def test_delete_by_ID(self):
         obj = movie.Movie.create_from_decription(self.description_with_title)
 
         self.assertIsNone(movie.Movie.delete_by_ID(obj.key.id()))
-        self.assertIsNone(movie.Movie.query(Key=obj.key.id()))
+        self.assertIsNone(movie.Movie.get_by_ID(obj.key.id()))
 
-    def test_get_by_title(self):
-        obj = movie.Movie.create_from_decription(self.description_with_title)
 
-        taken_obj = movie.Movie.get_by_title(self.title)
+    def test_delete_all_movies(self):
+        self.fetch_movie_mock.set_description(description=self.description_with_title)
+        objects = movie.Movie.add_movies_to_database(10)
 
-        self.assertTrue(obj.title == taken_obj.title)
-        self.assertEqual(obj.key.id(), taken_obj.key.id())
-        self.assertTrue(obj.description == taken_obj.description)
-
-        movie.Movie.delete_by_ID(obj.key.id())
-
-        self.assertIsNone(movie.Movie.get_by_title(self.title))
+        map(lambda obj: movie.Movie.delete_by_ID(obj.key.id()), objects)
+        self.assertEquals(map(lambda obj: movie.Movie.get_by_ID(ID=obj.key.id()), objects), [None]*10)
 
     def test_get_by_ID(self):
         obj = movie.Movie.create_from_decription(self.description_with_title)
@@ -119,4 +97,6 @@ class TestMovie(test.TestCase):
         movie.Movie.delete_by_ID(obj.key.id())
 
         self.assertIsNone(movie.Movie.get_by_ID(obj.key.id()))
+
+
 
