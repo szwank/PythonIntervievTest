@@ -83,10 +83,10 @@ class Movie(ndb.Model):
         list_of_entities = ndb.get_multi(list_of_keys)
         ndb.delete_multi(list_of_entities)
 
-    @classmethod
-    def get_movies(cls, how_much):
-        result = cls.query().fetch(how_much)
-        return result if result else None
+    # @classmethod
+    # def get_movies(cls, how_much):
+    #     result = cls.query().fetch(how_much)
+    #     return result if result else None
 
 
     @classmethod
