@@ -56,8 +56,8 @@ class TestCase(unittest.TestCase):
         # api mock
         self.api_mock = ApiMock()
 
-        self.fetch_mock = FetchServiceMock()        # for urlfetch
-        apiproxy_stub_map.apiproxy.RegisterStub('urlfetch', self.fetch_mock)
+        self.fetch_movie_mock = FetchServiceMock()        # for urlfetch
+        apiproxy_stub_map.apiproxy.RegisterStub('urlfetch', self.fetch_movie_mock)
 
 def tearDown(self):
         if testbed:
@@ -116,19 +116,21 @@ class ApiMock(object):
 class FetchServiceMock(apiproxy_stub.APIProxyStub):
     def __init__(self, service_name='urlfetch'):
         super(FetchServiceMock, self).__init__(service_name)
+        self.title = 'Title'
+        self.description = {'Year': '1995'}
 
+    def set_description(self, description):
+        self.description = description
+        self.title = description.get("Title", "Title")
 
+    def get_respond(self):
+        description_copy = dict(self.description)
+        description_copy["Title"] = self.title + str(time.time())
 
-    def set_return_values(self, change_title=False, **kwargs):
-        if change_title:
-            content = kwargs['content']
-            title = content.get('Title', 'Title')
-            content['Title'] = title + str(time.time())
-            kwargs['content'] = content
-        self.return_values = kwargs
+        return {'content': description_copy, 'status_code': 200}
 
     def _Dynamic_Fetch(self, request, response):
-        rv = self.return_values
+        rv = self.get_respond()
         response.set_content(rv.get('content', ''))
         response.set_statuscode(rv.get('status_code', 500))
         for header_key, header_value in rv.get('headers', {}):
