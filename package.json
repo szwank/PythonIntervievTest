@@ -3,7 +3,8 @@
     "appengine-python-sdk": "1.9.61"
   },
   "scripts": {
-    "backend": "python node_modules/appengine-python-sdk/google_appengine/dev_appserver.py --host=127.0.0.1 --allow_skipped_files --skip_sdk_update_check --port=5000 --admin_port=7000 --datastore_path=.appengine_datastore --storage_path=.appengine_storage .",
-    "test": "python test.py"
+    "backend": "python node_modules/appengine-python-sdk/google_appengine/dev_appserver.py --host=0.0.0.0 --admin_host=0.0.0.0 --allow_skipped_files --skip_sdk_update_check --port=5000 --admin_port=7000 --datastore_path=.appengine_datastore --storage_path=.appengine_storage --runtime=python-compat .",
+    "test": "python test.py",
+    "help": "python node_modules/appengine-python-sdk/google_appengine/dev_appserver.py -h ."
   }
 }
