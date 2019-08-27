@@ -28,3 +28,5 @@ Your task is to implement the following items into the existing project:
 ## 3. Unit tests for all classes
 
 ## 4. Surprise me :)
+I have created docker image of this project
+link: https://cloud.docker.com/u/szwank/repository/docker/szwank/node-web-app
