@@ -103,7 +103,7 @@ class MovieService(remote.Service):
                 next_cursor = next_cursor.urlsafe()
 
         elif request.direction == request.direction.PREVIOUS:
-            if not request.current_cursor:       # We are at first batch cursor- there is no data to get in this direction.
+            if not (request.current_cursor and request.next_cursor):       # We are at first batch cursor- there is no data to get in this direction.
                 raise NoPageLeftInThatDirection("Cannot get more in that direction.")
 
             cursor = Cursor(urlsafe=request.current_cursor)
@@ -111,7 +111,6 @@ class MovieService(remote.Service):
 
             movies, next_cursor, more = query.fetch_page(request.how_many_on_page, start_cursor=cursor)
 
-            movies.reverse()  # There are in reversed order- need to reverse
             current_cursor = next_cursor.reversed().urlsafe()
             next_cursor = cursor.reversed().urlsafe()
         else:
