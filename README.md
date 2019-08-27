@@ -22,7 +22,7 @@ Good luck!
 ## Serve backend
 
 - `npm run backend`
-- `localhost:7070` as default
+- `localhost:5000` as default    # Previous port won't work for me
 
 ## Preview the database
 
