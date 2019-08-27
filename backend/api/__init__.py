@@ -245,7 +245,7 @@ def warmup(environ, start_response):
         # Test user already in the database. No action needed
         pass
 
-    Movie.initialize_movie_database(5)
+    Movie.initialize_movie_database(100)
     start_response('200 OK', [])
 
     return ['']
